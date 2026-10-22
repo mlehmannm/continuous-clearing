@@ -310,6 +310,12 @@ namespace SIT.Services
         /// <returns>value</returns>
         private static string GetPackageDownloadUrl(ComparisonBomData componentInfo, Dictionary<string, string> attachmentUrlList)
         {
+            // Imported P2 distribution metadata is useful even without a downloaded binary attachment.
+            if (componentInfo.ReleaseExternalId?.StartsWith("pkg:p2/", StringComparison.Ordinal) == true &&
+                Uri.TryCreate(componentInfo.PackageUrl, UriKind.Absolute, out var uri) &&
+                (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp))
+                return componentInfo.PackageUrl;
+
             if (!(attachmentUrlList.ContainsKey("BINARY")))
             {
                 return string.Empty;

@@ -124,6 +124,14 @@ namespace SIT.Create
                         componentsData.Version = item.Version;
                         componentsData.ComponentExternalId = item.Purl.Substring(0, item.Purl.IndexOf('@'));
                         componentsData.ReleaseExternalId = item.Purl;
+                        if (item.Purl.StartsWith("pkg:p2/", StringComparison.Ordinal))
+                        {
+                            // A distribution JAR is a binary, not source code for the clearing upload.
+                            componentsData.PackageUrl = item.ExternalReferences?.FirstOrDefault(reference =>
+                                reference.Type == ExternalReference.ExternalReferenceType.Distribution &&
+                                Uri.TryCreate(reference.Url, UriKind.Absolute, out var uri) &&
+                                (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp))?.Url;
+                        }
                         Components component = await GetSourceUrl(componentsData.Name, componentsData.Version, componentsData.ProjectType, item.BomRef);
                         componentsData.SourceUrl = component.SourceUrl;
 
@@ -214,11 +222,15 @@ namespace SIT.Create
         /// <summary>
         /// Strips query-string parameters from a component's PURL, retaining only what is valid per type.
         /// - DEBIAN / ALPINE: if "?arch=source" is present the PURL is kept unchanged; otherwise everything from '?' onwards is removed.
-        /// - All other types (NPM, NuGet, Maven, Poetry, Conan, Cargo, …): everything from '?' onwards is removed.       
+        /// - P2: qualifiers are preserved to retain package identity and provenance.
+        /// - All other types (NPM, NuGet, Maven, Poetry, Conan, Cargo, …): everything from '?' onwards is removed.
         /// </summary>
         private static void UpdatePurlForProjectType(Component item, string projectType)
         {
             if (string.IsNullOrEmpty(item?.Purl) || string.IsNullOrEmpty(projectType)) return;
+
+            // P2 classifiers distinguish features from bundles; repository qualifiers also identify provenance.
+            if (item.Purl.StartsWith("pkg:p2/", StringComparison.Ordinal)) return;
 
             int queryIndex = item.Purl.IndexOf('?');
             if (queryIndex < 0) return;
@@ -241,6 +253,10 @@ namespace SIT.Create
         private static bool GetPackageType(Component package, ref Components componentsData)
         {
             bool isInternalComponent = false;
+
+            // Imported P2 components need no Siemens-specific property to reach the generic Create path.
+            if (package.Purl?.StartsWith("pkg:p2/", StringComparison.Ordinal) == true)
+                componentsData.ProjectType = "P2";
 
             if (package.Properties == null)
                 return isInternalComponent;

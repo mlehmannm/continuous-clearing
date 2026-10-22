@@ -144,6 +144,17 @@ nuget pack CA.nuspec
  ```
  ![](doc/gifs/NugetBuild.gif)
  
+### Imported Eclipse P2 components in SIT.Create
+
+For an already imported CycloneDX BOM, `SIT.Create` preserves `pkg:p2/` PURLs
+including their qualifiers. The first absolute HTTP(S) component external reference
+of type `distribution` is used as the binary download URL when creating a SW360
+release. It is retained in the output BOM and is not downloaded as source code.
+`repository_url`, `url`, and `download_url` qualifiers are retained as identity
+metadata; they are not used to resolve downloads. P2 imports do not require the
+Siemens project-type property. This does not add a P2 scanner or an Artifactory
+uploader, and existing SW360 releases are not backfilled with binary URLs.
+
 # Contribute
 
 Improvements are always welcome! Feel free to log a bug, write a suggestion or

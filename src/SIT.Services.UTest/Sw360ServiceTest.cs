@@ -573,17 +573,15 @@ namespace SIT.Services.UTest
             Assert.IsFalse(result);
         }
 
-        [Test]
-        public void ValidateProjectTypePurl_ReturnsTrue_WhenPurlIdMatches_PackageUrl()
+        [TestCase("NPM", "pkg:npm/test")]
+        [TestCase("P2", "pkg:p2/org.eclipse.ecf.core.feature")]
+        public void ValidateProjectTypePurl_ReturnsTrue_WhenPurlIdMatches_PackageUrl(string projectType, string purl)
         {
             var sw360Component = new Sw360Components
             {
-                ExternalIds = new ExternalIds { Package_Url = "pkg:npm/test" }
+                ExternalIds = new ExternalIds { Package_Url = purl }
             };
-            var component = new Components { ProjectType = "NPM" };
-
-            // Simulate PurlCheck containing "NPM"
-            var originalPurlCheck = SIT.Common.Constants.Dataconstant.PurlCheck();
+            var component = new Components { ProjectType = projectType };
 
             var result = (bool)ValidateProjectTypePurlMethod.Invoke(null, new object[] { sw360Component, component });
 

@@ -453,13 +453,19 @@ namespace SIT.Create
                     ComponentExternalId = item.ComponentExternalId,
                     ReleaseExternalId = item.ReleaseExternalId,
                     SourceUrl = item.SourceUrl,
+                    PackageUrl = item.PackageUrl,
                     DownloadUrl = item.DownloadUrl,
                     ComponentStatus = GetComponentAvailabilityStatus(componentsAvailableInSw360, item),
                     ReleaseStatus = IsReleaseAvailable(item.Name, item.Version, item.ReleaseExternalId),
                     AlpineSource = item.AlpineSourceData
                 };
 
-                if (!string.IsNullOrEmpty(item.ReleaseExternalId) && item.ReleaseExternalId.Contains(Dataconstant.PurlCheck()[Dataconstant.DebianProjectType]))
+                if (item.ReleaseExternalId?.StartsWith("pkg:p2/", StringComparison.Ordinal) == true)
+                {
+                    // Keep the source URL absent: distribution references identify binaries, not sources.
+                    mapper.DownloadUrl = Dataconstant.DownloadUrlNotFound;
+                }
+                else if (!string.IsNullOrEmpty(item.ReleaseExternalId) && item.ReleaseExternalId.Contains(Dataconstant.PurlCheck()[Dataconstant.DebianProjectType]))
                 {
                     SetDebianUrls(item, releasesInfo, mapper);
                 }

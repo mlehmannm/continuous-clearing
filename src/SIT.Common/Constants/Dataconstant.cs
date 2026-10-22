@@ -29,6 +29,7 @@ namespace SIT.Common.Constants
         {"CONAN", "pkg:conan"},
         {"ALPINE", "pkg:apk/alpine"},
         {"CARGO", "pkg:cargo"},
+        {"P2", "pkg:p2"},
          };
         /// <summary>
         /// Identified type: Manually added.
